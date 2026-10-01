@@ -1636,69 +1636,45 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
       }
     };
 
-    // When the 360 tour finishes: unbind wheel permanently and enable auto-rotation
-    const finishTourAndUnbindWheel = () => {
-      if (isTourCompletedRef.current) return;
-      isTourCompletedRef.current = true;
-      setIsTourCompleted(true);
-      setIsAutoRotating(true);
-      isAutoRotatingRef.current = true;
-      updateTourToProgress(1.0);
-      if (wheelListenerRef) {
-        window.removeEventListener('wheel', wheelListenerRef);
+    // --- Responsive Pinned Scroll Sequence Math ---
+    // Smooth scroll interpolation that gracefully locks on desktop while scrolling through 360 tour
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      if (window.innerWidth < 768) {
+        // On mobile, never trap or hijack scroll! Let user scroll past naturally
+        return;
       }
-    };
 
-    // Desktop Mouse Wheel Interaction:
-    // When the user scrolls down to this 3D model, the mouse wheel drives a full 360° rotation.
-    // As soon as 360° is reached, the wheel is UNBOUND, auto-mode starts, and the wheel
-    // is never intercepted again until page refresh!
-    let wheelListenerRef: ((e: WheelEvent) => void) | null = null;
+      // If the user already completed the 360 tour in this session:
+      // The wheel is completely UNBOUND! It never scrubs the model backward!
+      if (isTourCompletedRef.current) {
+        return;
+      }
 
-    if (!isMobileDevice && typeof window !== 'undefined') {
-      wheelListenerRef = (e: WheelEvent) => {
-        // If already completed in this session, mouse wheel is 100% UNBOUND
-        if (isTourCompletedRef.current) return;
-        if (!containerRef.current) return;
-
-        const rect = containerRef.current.getBoundingClientRect();
-        const winH = window.innerHeight;
-
-        // Is 3D section in view?
-        const isInView = rect.top <= 80 && rect.bottom >= winH * 0.4;
-        if (!isInView) return;
-
-        // If scrolling UP while at 0%, allow user to scroll back up to Hero
-        if (e.deltaY < 0 && scrollProgressRef.current <= 0.01) {
-          return;
-        }
-
-        // Intercept wheel for 360-degree rotation
-        e.preventDefault();
-
-        // 900px delta turns full 360° for a relaxed, majestic inspection of all phases
-        const step = e.deltaY / 900;
-        const newProgress = Math.min(Math.max(scrollProgressRef.current + step, 0), 1);
-        updateTourToProgress(newProgress);
-
-        // When 360° rotation is completed:
-        if (newProgress >= 0.98) {
-          finishTourAndUnbindWheel();
-        }
-      };
-
-      window.addEventListener('wheel', wheelListenerRef, { passive: false });
-    }
-
-    // Scroll listener: if user jumps past via scrollbar/anchor, auto-unbind
-    const handleScrollCheck = () => {
-      if (isTourCompletedRef.current || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      if (rect.bottom < 50) {
-        finishTourAndUnbindWheel();
+      const windowHeight = window.innerHeight;
+
+      // Distance inside the section before unpinning
+      const totalScrollableDistance = rect.height - windowHeight;
+      if (totalScrollableDistance <= 0) return;
+
+      const scrolledPastTop = -rect.top;
+      const rawProgress = scrolledPastTop / totalScrollableDistance;
+      const p = Math.min(Math.max(rawProgress, 0), 1);
+
+      updateTourToProgress(p);
+
+      // Tour completed check: when the user reaches the end of the 360 rotation:
+      if (p >= 0.95) {
+        isTourCompletedRef.current = true;
+        setIsTourCompleted(true);
+        setIsAutoRotating(true);
+        isAutoRotatingRef.current = true;
       }
     };
-    window.addEventListener('scroll', handleScrollCheck, { passive: true });
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
 
     // IntersectionObserver to completely halt rendering loop when 3D model is offscreen
     let isVisible = true;
@@ -1801,10 +1777,7 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     return () => {
       stopLoop();
       observer.disconnect();
-      if (wheelListenerRef) {
-        window.removeEventListener('wheel', wheelListenerRef);
-      }
-      window.removeEventListener('scroll', handleScrollCheck);
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
       canvasElem.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
@@ -1849,6 +1822,19 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
         isAutoRotatingRef.current = true;
       }
     }
+    // Only scroll window on desktop where scroll-driven tour is active
+    if (window.innerWidth >= 768 && containerRef.current && !isTourCompletedRef.current) {
+      const targetP = index / (phases.length - 1);
+      const rect = containerRef.current.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const totalScrollableDistance = containerRef.current.clientHeight - window.innerHeight;
+      const targetScrollY = scrollTop + rect.top + targetP * totalScrollableDistance;
+
+      window.scrollTo({
+        top: targetScrollY,
+        behavior: 'smooth',
+      });
+    }
   };
 
   // Skip / proceed directly to next section
@@ -1869,10 +1855,10 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     <section 
       id="architecture-3d" 
       ref={containerRef}
-      className="relative w-full h-[600px] sm:h-[680px] md:h-[100dvh] bg-[#080d15] text-white"
+      className="relative w-full h-[600px] sm:h-[680px] md:h-[260vh] bg-[#080d15] text-white"
     >
-      {/* 3D Viewport container (freely scrolls past on desktop and mobile) */}
-      <div className="relative h-full w-full flex flex-col justify-between overflow-hidden">
+      {/* Pinned Sticky Viewport on desktop; natural unblocked section on mobile */}
+      <div className="relative md:sticky md:top-0 h-full md:h-[100dvh] w-full flex flex-col justify-between overflow-hidden">
         
         {/* Subtle Architectural Grid Accent Lines in Background */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(56,189,248,0.14),rgba(255,255,255,0))] pointer-events-none" />
