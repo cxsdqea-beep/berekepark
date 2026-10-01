@@ -1165,20 +1165,17 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     };
 
     // Place Rich Volumetric Park Trees (Framing perimeter & lake, keeping entrance avenue totally clear)
-    // Left (West) Park & Playground Trees
+    // Left (West) Park & Playground Perimeter Trees (safely clear of playground & parking lot)
     createLushVolumetricTree(-7.5, 9.5, 1.25, 'oak');
     createLushVolumetricTree(-9.5, 7.8, 1.2, 'oak');
-    createLushVolumetricTree(-10.2, 5.5, 1.25, 'oak');
+    createLushVolumetricTree(-11.5, 6.5, 1.15, 'oak');
     createLushVolumetricTree(-8.8, 8.2, 1.15, 'oak');
-    createLushVolumetricTree(-10.5, 1.0, 1.2, 'oak');
-    createLushVolumetricTree(-11.0, -4.5, 1.35, 'oak');
-    createLushVolumetricTree(-8.5, -8.0, 1.1, 'oak');
 
-    // Right (East) Lake Parkland & Garden Trees
+    // Right (East) Lake Parkland & Garden Trees (safely clear of lake basin)
     createLushVolumetricTree(6.8, 10.5, 1.25, 'oak');
     createLushVolumetricTree(9.8, 9.5, 1.2, 'oak');
-    createLushVolumetricTree(10.5, 6.2, 1.3, 'oak');
-    createLushVolumetricTree(11.2, 3.5, 1.15, 'oak');
+    createLushVolumetricTree(11.5, 6.5, 1.15, 'oak');
+    createLushVolumetricTree(11.5, 3.5, 1.15, 'oak');
     createLushVolumetricTree(10.5, 1.0, 1.2, 'oak');
     createLushVolumetricTree(10.8, -4.5, 1.35, 'oak');
     createLushVolumetricTree(8.5, -8.0, 1.1, 'oak');
