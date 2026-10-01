@@ -7,6 +7,7 @@ import type {
   PhilosophyQuoteItem,
   Language
 } from '../types';
+import { getAssetUrl } from '../utils/assets';
 
 export const CONTACT_INFO = {
   phone: '+7 777 711 80 80',
@@ -1451,4 +1452,11 @@ export const getLocalizedQuote = (
     tag: tr.tag || quote.tag,
   };
 };
+
+// Normalize asset paths for root & subpath deployments (e.g. GitHub Pages)
+[GALLERY_DATA, PHILOSOPHY_QUOTES, INFRASTRUCTURE_DATA, LAYOUTS_DATA, CONSTRUCTION_REPORTS].forEach((list: Array<{ image?: string }>) => {
+  list.forEach((item) => {
+    if (item.image) item.image = getAssetUrl(item.image);
+  });
+});
 
