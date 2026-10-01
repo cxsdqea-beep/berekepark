@@ -1676,8 +1676,8 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
         // Intercept wheel for 360-degree rotation
         e.preventDefault();
 
-        // 450px delta turns full 360° (about 4-5 natural mouse wheel notches)
-        const step = e.deltaY / 450;
+        // 900px delta turns full 360° for a relaxed, majestic inspection of all phases
+        const step = e.deltaY / 900;
         const newProgress = Math.min(Math.max(scrollProgressRef.current + step, 0), 1);
         updateTourToProgress(newProgress);
 
@@ -1762,21 +1762,21 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
         waterMat.roughness = 0.08 + Math.sin(elapsedTime * 2.0) * 0.02;
       }
 
-      // Continuous 360-degree rotation on mobile as requested!
+      // Smooth, majestic, slower rotation speed
       if (isMobileNow) {
         if (!isDragging) {
-          targetRotationRef.current += 0.005; // Elegant smooth 360° spin
+          targetRotationRef.current += 0.0018; // Smooth, slow 360° spin on mobile
         }
       } else if (isAutoRotatingRef.current && !isDragging) {
-        targetRotationRef.current += 0.003;
+        targetRotationRef.current += 0.0012; // Slower, elegant architectural glide
       }
 
       // Smooth damping interpolation for building rotation
-      currentRotationRef.current += (targetRotationRef.current - currentRotationRef.current) * (isMobileNow ? 0.08 : 0.06);
+      currentRotationRef.current += (targetRotationRef.current - currentRotationRef.current) * (isMobileNow ? 0.06 : 0.045);
       buildingGroup.rotation.y = currentRotationRef.current;
 
       // Smooth damping interpolation for camera position & target
-      camera.position.lerp(targetCamPosRef.current, 0.06);
+      camera.position.lerp(targetCamPosRef.current, 0.045);
       camera.lookAt(targetLookAtRef.current);
 
       renderer.render(scene, camera);
