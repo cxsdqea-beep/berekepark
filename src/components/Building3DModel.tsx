@@ -334,17 +334,6 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
       color: 0xffedd5, // Warm 2700K glowing diffuser lens
     });
 
-    // 16. Blooming Park Flowers & Ornamental Plants
-    const flowerRoseMat = new THREE.MeshStandardMaterial({
-      color: 0xf472b6,
-      roughness: 0.8,
-      flatShading: true,
-    });
-    const flowerLilacMat = new THREE.MeshStandardMaterial({
-      color: 0xa855f7,
-      roughness: 0.8,
-      flatShading: true,
-    });
 
     // Helper to create an architectural box with subtle edge lines
     const createOutlinedBox = (
@@ -416,31 +405,6 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     westPath.group.rotation.y = -0.55;
     buildingGroup.add(westPath.group);
 
-    const eastPath = createOutlinedBox(1.8, 0.08, 4.2, walkwayMat);
-    eastPath.group.position.set(4.2, 0.06, 5.8);
-    buildingGroup.add(eastPath.group);
-
-    // Side Walkways leading along residential wings
-    const courtyardWestPath = createOutlinedBox(1.4, 0.08, 6.5, walkwayMat);
-    courtyardWestPath.group.position.set(-8.2, 0.06, -1.5);
-    buildingGroup.add(courtyardWestPath.group);
-
-    const courtyardEastPath = createOutlinedBox(1.4, 0.08, 6.5, walkwayMat);
-    courtyardEastPath.group.position.set(8.2, 0.06, -1.5);
-    buildingGroup.add(courtyardEastPath.group);
-
-    // Organic Stepping Stones on Lawns
-    const steppingStonePositions = [
-      [-3.0, 6.5], [-3.8, 7.2], [-4.6, 7.8],
-      [3.0, 6.5], [3.8, 7.2], [4.6, 7.8],
-    ];
-    steppingStonePositions.forEach(([sx, sz]) => {
-      const stoneGeo = new THREE.CylinderGeometry(0.32, 0.35, 0.05, 12);
-      const stoneMesh = new THREE.Mesh(stoneGeo, curbMat);
-      stoneMesh.position.set(sx, 0.07, sz);
-      stoneMesh.receiveShadow = true;
-      buildingGroup.add(stoneMesh);
-    });
 
     // --- Children's Play Zone on West Lawn ---
     const playgroundGroup = new THREE.Group();
@@ -627,7 +591,7 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
       buildingGroup.add(lanternGroup);
     };
 
-    // Place Lanterns along Walkways, Grand Promenade & Lake Deck
+    // Place Lanterns along Walkways & Grand Promenade
     createParkLantern(-2.7, 2.4, Math.PI / 2, true);
     createParkLantern(2.7, 2.4, -Math.PI / 2, true);
     createParkLantern(-2.7, 5.5, Math.PI / 2, true);
@@ -636,10 +600,6 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     createParkLantern(2.7, 8.8, -Math.PI / 2, true);
     createParkLantern(-2.7, 10.8, Math.PI / 2, true);
     createParkLantern(2.7, 10.8, -Math.PI / 2, true);
-    createParkLantern(4.5, 7.8, -Math.PI / 4, true);
-    createParkLantern(10.5, 8.5, -Math.PI / 2, true);
-    createParkLantern(-5.2, 2.2, 0, false);
-    createParkLantern(4.5, 2.2, 0, false);
 
     // --- 2A. Central Grand Architectural Cascade Fountain ---
     // Outer Granite Basin
@@ -687,81 +647,33 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
       buildingGroup.add(fountainLight);
     }
 
-    // --- 2B. Scenic Natural Lake & Promenade Pier on the Right Side (East Park) ---
-    // Circular Natural Lake Basin situated on the east lawn
-    const lakeBasinGeo = new THREE.CylinderGeometry(3.6, 3.6, 0.25, 48);
+    // --- 2B. Scenic Natural Lake on East Lawn ---
+    // Compact, clean circular lake with smooth stone curb, completely isolated on the green lawn
+    const lakeRadius = 2.2;
+    const lakeBasinGeo = new THREE.CylinderGeometry(lakeRadius, lakeRadius, 0.22, 48);
     const lakeMesh = new THREE.Mesh(lakeBasinGeo, waterMat);
-    lakeMesh.position.set(7.6, 0.06, 5.8);
+    lakeMesh.position.set(7.6, 0.06, 5.2);
     lakeMesh.receiveShadow = true;
     buildingGroup.add(lakeMesh);
 
-    const lakeDepthGeo = new THREE.CylinderGeometry(3.5, 3.5, 0.22, 32);
+    const lakeDepthGeo = new THREE.CylinderGeometry(lakeRadius - 0.08, lakeRadius - 0.08, 0.2, 32);
     const lakeDepthMesh = new THREE.Mesh(lakeDepthGeo, waterDepthMat);
-    lakeDepthMesh.position.set(7.6, 0.04, 5.8);
+    lakeDepthMesh.position.set(7.6, 0.04, 5.2);
     buildingGroup.add(lakeDepthMesh);
 
     // Lake Stone Border Embankment Ring
-    const lakeRingGeo = new THREE.TorusGeometry(3.6, 0.2, 12, 48);
+    const lakeRingGeo = new THREE.TorusGeometry(lakeRadius, 0.14, 12, 48);
     const lakeRingMesh = new THREE.Mesh(lakeRingGeo, curbMat);
     lakeRingMesh.rotation.x = Math.PI / 2;
-    lakeRingMesh.position.set(7.6, 0.14, 5.8);
+    lakeRingMesh.position.set(7.6, 0.12, 5.2);
     buildingGroup.add(lakeRingMesh);
 
-    // Underwater Lake Glow
+    // Subtle Underwater Lake Glow
     if (!isMobileDevice) {
-      const lakeUnderwaterLight = new THREE.PointLight(0x0ea5e9, 1.8, 6.5, 1.5);
-      lakeUnderwaterLight.position.set(7.6, 0.4, 5.8);
+      const lakeUnderwaterLight = new THREE.PointLight(0x0ea5e9, 1.4, 5.0, 1.5);
+      lakeUnderwaterLight.position.set(7.6, 0.35, 5.2);
       buildingGroup.add(lakeUnderwaterLight);
     }
-
-    // Wooden Pier / Viewing Deck reaching into the lake from the pathway
-    const pierObj = createOutlinedBox(3.4, 0.16, 1.6, warmWoodMat);
-    pierObj.group.position.set(5.8, 0.22, 5.8);
-    buildingGroup.add(pierObj.group);
-
-    // Pier Submerged Wood Pilings / Stilts
-    const pilingCoords = [
-      [5.0, 5.2], [5.0, 6.4],
-      [6.6, 5.2], [6.6, 6.4],
-      [7.2, 5.2], [7.2, 6.4]
-    ];
-    pilingCoords.forEach(([px, pz]) => {
-      const pilingGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.45, 8);
-      const pilingMesh = new THREE.Mesh(pilingGeo, barkMat);
-      pilingMesh.position.set(px, 0.05, pz);
-      buildingGroup.add(pilingMesh);
-    });
-
-    // Pier Glass & Wood Railings
-    const northPierRail = createOutlinedBox(3.2, 0.45, 0.05, glassMat);
-    northPierRail.group.position.set(5.8, 0.5, 5.0);
-    buildingGroup.add(northPierRail.group);
-
-    const southPierRail = createOutlinedBox(3.2, 0.45, 0.05, glassMat);
-    southPierRail.group.position.set(5.8, 0.5, 6.6);
-    buildingGroup.add(southPierRail.group);
-
-    // Pier Viewing Bench Lounger overlooking water
-    const pierBench = createOutlinedBox(1.4, 0.08, 0.4, warmWoodMat);
-    pierBench.group.position.set(6.8, 0.35, 5.8);
-    buildingGroup.add(pierBench.group);
-
-    // Decorative floating water lily pads on the lake
-    const lilyPadCoords = [
-      [7.2, 4.2], [8.5, 6.5], [6.8, 7.2], [8.8, 4.8]
-    ];
-    lilyPadCoords.forEach(([lx, lz]) => {
-      const lilyGeo = new THREE.CylinderGeometry(0.24, 0.26, 0.02, 12);
-      const lilyMesh = new THREE.Mesh(lilyGeo, foliageLimeMat);
-      lilyMesh.position.set(lx, 0.08, lz);
-      buildingGroup.add(lilyMesh);
-
-      // Blossom
-      const blossomGeo = new THREE.DodecahedronGeometry(0.08, 0);
-      const blossomMesh = new THREE.Mesh(blossomGeo, flowerRoseMat);
-      blossomMesh.position.set(lx, 0.11, lz);
-      buildingGroup.add(blossomMesh);
-    });
 
     // --- 3. Central Residential Tower (8 floors, ~11m high) ---
     const mainBlockObj = createOutlinedBox(9.2, 9.6, 6.8, facadeMat, lineMat);
@@ -1277,46 +1189,22 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     createLushVolumetricTree(3.4, 2.5, 0.95, 'cypress');
     createLushVolumetricTree(-3.4, 5.0, 0.95, 'cypress');
     createLushVolumetricTree(3.4, 5.0, 0.95, 'cypress');
-    createLushVolumetricTree(-6.8, 1.8, 1.05, 'cypress');
     createLushVolumetricTree(6.8, 2.8, 1.05, 'cypress');
 
-    // Rounded Greenery Dome Shrubs / Low Hedges along Curbs
+    // Rounded Greenery Dome Shrubs along Central Promenade Curbs
     const shrubPositions = [
-      [-3.4, 1.8], [3.4, 1.8],
-      [-4.0, 3.8], [4.0, 3.8],
-      [-5.8, 4.2], [5.8, 4.2],
-      [-3.4, 7.5], [3.4, 7.5],
-      [-3.4, 9.8], [3.4, 9.8],
-      [-4.8, 6.2], [4.8, 6.2],
-      [9.5, 5.5], [9.5, 7.5],
+      [-3.2, 2.0], [3.2, 2.0],
+      [-3.2, 4.5], [3.2, 4.5],
+      [-3.2, 7.5], [3.2, 7.5],
+      [-3.2, 9.8], [3.2, 9.8],
     ];
     shrubPositions.forEach(([sx, sz]) => {
-      const shrubGeo = new THREE.DodecahedronGeometry(0.42, 1);
+      const shrubGeo = new THREE.DodecahedronGeometry(0.4, 1);
       const shrubMesh = new THREE.Mesh(shrubGeo, foliageSunlitMat);
       shrubMesh.position.set(sx, 0.22, sz);
-      shrubMesh.scale.set(1.2, 0.7, 1.2);
+      shrubMesh.scale.set(1.1, 0.7, 1.1);
       shrubMesh.castShadow = true;
       buildingGroup.add(shrubMesh);
-    });
-
-    // Blooming Flowering Hydrangea & Lavender Bushes
-    const flowerClusters = [
-      { x: -3.8, z: 5.6, mat: flowerRoseMat },
-      { x: 3.8, z: 5.6, mat: flowerLilacMat },
-      { x: -5.2, z: 3.2, mat: flowerLilacMat },
-      { x: 5.2, z: 3.2, mat: flowerRoseMat },
-      { x: -3.8, z: 8.5, mat: flowerRoseMat },
-      { x: 3.8, z: 8.5, mat: flowerLilacMat },
-      { x: 6.8, z: 8.5, mat: flowerRoseMat },
-      { x: 9.2, z: 3.8, mat: flowerLilacMat },
-    ];
-    flowerClusters.forEach((fc) => {
-      const flowerGeo = new THREE.DodecahedronGeometry(0.32, 1);
-      const flowerMesh = new THREE.Mesh(flowerGeo, fc.mat);
-      flowerMesh.position.set(fc.x, 0.18, fc.z);
-      flowerMesh.scale.set(1.1, 0.8, 1.1);
-      flowerMesh.castShadow = true;
-      buildingGroup.add(flowerMesh);
     });
 
     // Park Pathway Bollard Lights (Flanking the grand promenade)
@@ -1325,7 +1213,6 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
       [-2.6, 4.5], [2.6, 4.5],
       [-2.6, 7.0], [2.6, 7.0],
       [-2.6, 9.5], [2.6, 9.5],
-      [4.2, 6.8], [6.2, 4.5],
     ];
     const bollardMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3 });
     const bollardGlowMat = new THREE.MeshBasicMaterial({ color: 0xffedd5 });
