@@ -38,18 +38,20 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
   const [isUserInteracting, setIsUserInteracting] = useState<boolean>(false);
   const [isAutoRotating, setIsAutoRotating] = useState<boolean>(false);
   const isAutoRotatingRef = useRef<boolean>(isAutoRotating);
+  const isTourCompletedRef = useRef<boolean>(false);
+
   useEffect(() => {
     isAutoRotatingRef.current = isAutoRotating;
   }, [isAutoRotating]);
   const { t } = useLanguage();
 
-  // 5 Choreographed Architectural Tour Phases (Adjusted for grand majestic framing)
+  // 5 Choreographed Architectural Tour Phases (Completing an exact 360-degree rotation)
   const rawKeyframes = [
-    { camX: 25, camY: 16.5, camZ: 25, targetY: 3.2, rotY: 0.15 },
-    { camX: 12, camY: 5.2, camZ: 14, targetY: 2.8, rotY: 0.95 },
-    { camX: 13, camY: 14.8, camZ: 11, targetY: 7.5, rotY: 2.10 },
-    { camX: 12, camY: 4.5, camZ: 16, targetY: 2.4, rotY: 3.14 },
-    { camX: 21, camY: 12.0, camZ: 21, targetY: 3.5, rotY: 3.65 },
+    { camX: 24, camY: 15.5, camZ: 24, targetY: 3.2, rotY: 0.15 },
+    { camX: 20, camY: 10.5, camZ: 22, targetY: 2.8, rotY: 0.15 + Math.PI * 0.5 },
+    { camX: 22, camY: 14.5, camZ: 21, targetY: 3.5, rotY: 0.15 + Math.PI * 1.0 },
+    { camX: 20, camY: 10.5, camZ: 22, targetY: 3.0, rotY: 0.15 + Math.PI * 1.5 },
+    { camX: 24, camY: 15.5, camZ: 24, targetY: 3.2, rotY: 0.15 + Math.PI * 2.0 },
   ];
 
   const phases: CameraKeyframe[] = rawKeyframes.map((kf, i) => ({
@@ -1585,31 +1587,10 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     window.addEventListener('touchmove', onTouchMove, { passive: true });
     window.addEventListener('touchend', onTouchEnd);
 
-    // --- Responsive Pinned Scroll Sequence Math ---
-    // Smooth scroll interpolation that gracefully unlocks when scrolled through (desktop only)
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      if (window.innerWidth < 768) {
-        // On mobile, never trap or hijack scroll! Let user scroll past naturally
-        return;
-      }
-      const rect = containerRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-
-      // Distance inside the section before unpinning
-      const totalScrollableDistance = rect.height - windowHeight;
-      if (totalScrollableDistance <= 0) return;
-
-      const scrolledPastTop = -rect.top;
-      const rawProgress = scrolledPastTop / totalScrollableDistance;
-      const p = Math.min(Math.max(rawProgress, 0), 1);
-
+    // Helper to interpolate camera and building rotation smoothly along the 5 phases
+    const updateTourToProgress = (p: number) => {
       scrollProgressRef.current = p;
       setScrollProgress(p);
-
-      // Tour completed check
-      const completed = p >= 0.92;
-      setIsTourCompleted(completed);
 
       // Determine active phase index
       let phaseIdx = 0;
@@ -1655,8 +1636,69 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    // When the 360 tour finishes: unbind wheel permanently and enable auto-rotation
+    const finishTourAndUnbindWheel = () => {
+      if (isTourCompletedRef.current) return;
+      isTourCompletedRef.current = true;
+      setIsTourCompleted(true);
+      setIsAutoRotating(true);
+      isAutoRotatingRef.current = true;
+      updateTourToProgress(1.0);
+      if (wheelListenerRef) {
+        window.removeEventListener('wheel', wheelListenerRef);
+      }
+    };
+
+    // Desktop Mouse Wheel Interaction:
+    // When the user scrolls down to this 3D model, the mouse wheel drives a full 360° rotation.
+    // As soon as 360° is reached, the wheel is UNBOUND, auto-mode starts, and the wheel
+    // is never intercepted again until page refresh!
+    let wheelListenerRef: ((e: WheelEvent) => void) | null = null;
+
+    if (!isMobileDevice && typeof window !== 'undefined') {
+      wheelListenerRef = (e: WheelEvent) => {
+        // If already completed in this session, mouse wheel is 100% UNBOUND
+        if (isTourCompletedRef.current) return;
+        if (!containerRef.current) return;
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const winH = window.innerHeight;
+
+        // Is 3D section in view?
+        const isInView = rect.top <= 80 && rect.bottom >= winH * 0.4;
+        if (!isInView) return;
+
+        // If scrolling UP while at 0%, allow user to scroll back up to Hero
+        if (e.deltaY < 0 && scrollProgressRef.current <= 0.01) {
+          return;
+        }
+
+        // Intercept wheel for 360-degree rotation
+        e.preventDefault();
+
+        // 450px delta turns full 360° (about 4-5 natural mouse wheel notches)
+        const step = e.deltaY / 450;
+        const newProgress = Math.min(Math.max(scrollProgressRef.current + step, 0), 1);
+        updateTourToProgress(newProgress);
+
+        // When 360° rotation is completed:
+        if (newProgress >= 0.98) {
+          finishTourAndUnbindWheel();
+        }
+      };
+
+      window.addEventListener('wheel', wheelListenerRef, { passive: false });
+    }
+
+    // Scroll listener: if user jumps past via scrollbar/anchor, auto-unbind
+    const handleScrollCheck = () => {
+      if (isTourCompletedRef.current || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      if (rect.bottom < 50) {
+        finishTourAndUnbindWheel();
+      }
+    };
+    window.addEventListener('scroll', handleScrollCheck, { passive: true });
 
     // IntersectionObserver to completely halt rendering loop when 3D model is offscreen
     let isVisible = true;
@@ -1759,7 +1801,10 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     return () => {
       stopLoop();
       observer.disconnect();
-      window.removeEventListener('scroll', handleScroll);
+      if (wheelListenerRef) {
+        window.removeEventListener('wheel', wheelListenerRef);
+      }
+      window.removeEventListener('scroll', handleScrollCheck);
       window.removeEventListener('resize', handleResize);
       canvasElem.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
@@ -1794,24 +1839,24 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
       targetCamPosRef.current.set(kf.camX, kf.camY, kf.camZ);
       targetLookAtRef.current.set(0, kf.targetY, 0);
       targetRotationRef.current = kf.rotY;
-    }
-    // Only scroll window on desktop where scroll-driven tour is active
-    if (window.innerWidth >= 768 && containerRef.current) {
-      const targetP = index / (phases.length - 1);
-      const rect = containerRef.current.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const totalScrollableDistance = containerRef.current.clientHeight - window.innerHeight;
-      const targetScrollY = scrollTop + rect.top + targetP * totalScrollableDistance;
-
-      window.scrollTo({
-        top: targetScrollY,
-        behavior: 'smooth',
-      });
+      const p = index / (phases.length - 1);
+      scrollProgressRef.current = p;
+      setScrollProgress(p);
+      if (index === phases.length - 1) {
+        isTourCompletedRef.current = true;
+        setIsTourCompleted(true);
+        setIsAutoRotating(true);
+        isAutoRotatingRef.current = true;
+      }
     }
   };
 
   // Skip / proceed directly to next section
   const handleScrollToNextSection = () => {
+    isTourCompletedRef.current = true;
+    setIsTourCompleted(true);
+    setIsAutoRotating(true);
+    isAutoRotatingRef.current = true;
     const nextElem = document.getElementById('concept') || document.getElementById('layouts');
     if (nextElem) {
       nextElem.scrollIntoView({ behavior: 'smooth' });
@@ -1824,10 +1869,10 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     <section 
       id="architecture-3d" 
       ref={containerRef}
-      className="relative w-full h-[600px] sm:h-[680px] md:h-[220vh] bg-[#080d15] text-white"
+      className="relative w-full h-[600px] sm:h-[680px] md:h-[100dvh] bg-[#080d15] text-white"
     >
-      {/* Pinned Sticky Viewport on desktop; natural unblocked section on mobile */}
-      <div className="relative md:sticky md:top-0 h-full md:h-[100dvh] w-full flex flex-col justify-between overflow-hidden">
+      {/* 3D Viewport container (freely scrolls past on desktop and mobile) */}
+      <div className="relative h-full w-full flex flex-col justify-between overflow-hidden">
         
         {/* Subtle Architectural Grid Accent Lines in Background */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(56,189,248,0.14),rgba(255,255,255,0))] pointer-events-none" />
