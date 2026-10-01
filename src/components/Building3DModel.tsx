@@ -1179,7 +1179,7 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     createLushVolumetricTree(10.5, 1.0, 1.2, 'oak');
     createLushVolumetricTree(10.8, -4.5, 1.35, 'oak');
     createLushVolumetricTree(8.5, -8.0, 1.1, 'oak');
-    createLushVolumetricTree(0, -9.0, 1.4, 'oak');
+    createLushVolumetricTree(2.5, -9.5, 1.15, 'oak');
 
     // Flanking Columnar Cypress Trees (Framing entrance avenue neatly without blocking)
     createLushVolumetricTree(-3.4, 2.5, 0.95, 'cypress');
@@ -1226,82 +1226,82 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
 
     // --- 8. High-Quality 3D Executive Parking Lot & Luxury 3D Vehicles ---
     const parkingGroup = new THREE.Group();
-    parkingGroup.position.set(-8.8, 0, -2.8);
+    parkingGroup.position.set(-8.0, 0, -8.2);
 
     // Dark Executive Asphalt Parking Pad
-    const parkingPad = createOutlinedBox(6.8, 0.08, 8.8, asphaltMat);
+    const parkingPad = createOutlinedBox(6.4, 0.08, 7.8, asphaltMat);
     parkingPad.group.position.set(0, 0.05, 0);
     parkingGroup.add(parkingPad.group);
 
     // Concrete Surrounding Curbs
-    const pCurbNorth = createOutlinedBox(6.8, 0.14, 0.16, curbMat);
-    pCurbNorth.group.position.set(0, 0.1, -4.4);
+    const pCurbNorth = createOutlinedBox(6.4, 0.14, 0.16, curbMat);
+    pCurbNorth.group.position.set(0, 0.1, -3.9);
     parkingGroup.add(pCurbNorth.group);
 
-    const pCurbSouth = createOutlinedBox(6.8, 0.14, 0.16, curbMat);
-    pCurbSouth.group.position.set(0, 0.1, 4.4);
+    const pCurbSouth = createOutlinedBox(6.4, 0.14, 0.16, curbMat);
+    pCurbSouth.group.position.set(0, 0.1, 3.9);
     parkingGroup.add(pCurbSouth.group);
 
-    const pCurbWest = createOutlinedBox(0.16, 0.14, 8.8, curbMat);
-    pCurbWest.group.position.set(-3.4, 0.1, 0);
+    const pCurbWest = createOutlinedBox(0.16, 0.14, 7.8, curbMat);
+    pCurbWest.group.position.set(-3.2, 0.1, 0);
     parkingGroup.add(pCurbWest.group);
 
     // 4 Painted Parking Bay Markings & Concrete Wheel Stops
-    const bayZCoords = [-3.0, -1.0, 1.0, 3.0];
+    const bayZCoords = [-2.7, -0.9, 0.9, 2.7];
     bayZCoords.forEach((bz) => {
       // White Line Divider
       const pLine = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.015, 0.08), roadPaintMat);
-      pLine.position.set(0.6, 0.1, bz - 1.0);
+      pLine.position.set(0.6, 0.1, bz - 0.9);
       parkingGroup.add(pLine);
 
       // Wheel Stop Block
-      const wheelStop = createOutlinedBox(0.14, 0.1, 1.6, curbMat);
+      const wheelStop = createOutlinedBox(0.14, 0.1, 1.5, curbMat);
       wheelStop.group.position.set(-1.0, 0.12, bz);
       wheelStop.group.rotation.y = Math.PI / 2;
       parkingGroup.add(wheelStop.group);
     });
     // End line
     const lastPLine = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.015, 0.08), roadPaintMat);
-    lastPLine.position.set(0.6, 0.1, 4.0);
+    lastPLine.position.set(0.6, 0.1, 3.6);
     parkingGroup.add(lastPLine);
 
     // Modern High-Tech EV Charging Station
     const evCharger = createOutlinedBox(0.3, 1.3, 0.45, darkAccentMat);
-    evCharger.group.position.set(-2.8, 0.65, 3.0);
+    evCharger.group.position.set(-2.6, 0.65, 2.7);
     parkingGroup.add(evCharger.group);
 
     const evLedGeo = new THREE.BoxGeometry(0.04, 0.6, 0.08);
     const evLedMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
     const evLedMesh = new THREE.Mesh(evLedGeo, evLedMat);
-    evLedMesh.position.set(-2.63, 0.75, 3.0);
+    evLedMesh.position.set(-2.43, 0.75, 2.7);
     parkingGroup.add(evLedMesh);
 
     // Modern Parking Lot LED Light Poles
-    [-3.0, 2.5].forEach((pz) => {
+    [-2.7, 2.7].forEach((pz) => {
       const pPole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.065, 2.8, 8), lanternPoleMat);
-      pPole.position.set(-3.2, 1.4, pz);
+      pPole.position.set(-3.0, 1.4, pz);
       parkingGroup.add(pPole);
 
       const pHead = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.08, 0.22), lanternPoleMat);
-      pHead.position.set(-2.95, 2.78, pz);
+      pHead.position.set(-2.75, 2.78, pz);
       parkingGroup.add(pHead);
 
       if (!isMobileDevice) {
         const pLight = new THREE.PointLight(0xfff6e8, 1.6, 7.5, 1.6);
-        pLight.position.set(-2.9, 2.65, pz);
+        pLight.position.set(-2.7, 2.65, pz);
         parkingGroup.add(pLight);
       }
     });
 
     // Executive Parking Pylon Sign
     const parkPylon = createOutlinedBox(0.2, 1.3, 0.5, darkAccentMat);
-    parkPylon.group.position.set(3.2, 0.65, 3.8);
+    parkPylon.group.position.set(2.8, 0.65, 3.6);
     parkingGroup.add(parkPylon.group);
 
     const pSignGeo = new THREE.BoxGeometry(0.22, 0.35, 0.35);
     const pSignMat = new THREE.MeshBasicMaterial({ color: 0x2563eb });
     const pSignMesh = new THREE.Mesh(pSignGeo, pSignMat);
-    pSignMesh.position.set(3.2, 1.05, 3.8);
+    pSignMesh.position.set(2.8, 1.05, 3.6);
     parkingGroup.add(pSignMesh);
 
     // Procedural High-Quality 3D Luxury Vehicles
@@ -1394,10 +1394,10 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({ onOpenConsulta
     const carPaintGrey = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.18, metalness: 0.88 });
     const carPaintBlue = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.18, metalness: 0.88 });
 
-    createDetailed3DCar(-3.0, carPaintBlack, 'sedan');   // Executive Maybach-style Black Sedan
-    createDetailed3DCar(-1.0, carPaintWhite, 'suv');     // Luxury Pearl White SUV
-    createDetailed3DCar(1.0, carPaintGrey, 'coupe');     // Sports Metallic Grey Coupe
-    createDetailed3DCar(3.0, carPaintBlue, 'ev');        // Sapphire Blue Electric Sedan
+    createDetailed3DCar(-2.7, carPaintBlack, 'sedan');   // Executive Maybach-style Black Sedan
+    createDetailed3DCar(-0.9, carPaintWhite, 'suv');     // Luxury Pearl White SUV
+    createDetailed3DCar(0.9, carPaintGrey, 'coupe');     // Sports Metallic Grey Coupe
+    createDetailed3DCar(2.7, carPaintBlue, 'ev');        // Sapphire Blue Electric Sedan
 
     buildingGroup.add(parkingGroup);
 
